@@ -1,3 +1,4 @@
+import { Activity } from 'lucide-react'
 import TopMovers from '../components/TopMovers'
 import StockList from '../components/StockList'
 
@@ -5,18 +6,29 @@ function HomePage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">S&P 500 Dashboard</h1>
-        <p className="text-gray-600">
-          Real-time stock market data for S&P 500 companies
+        <div className="flex items-center gap-3 mb-2">
+          <div className="p-2 bg-primary-100 rounded-lg">
+            <Activity className="w-6 h-6 text-primary-600" />
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900">S&P 500 Dashboard</h1>
+        </div>
+        <p className="text-gray-600 max-w-2xl">
+          Track real-time stock market data for all S&P 500 companies. View price changes,
+          market trends, and detailed analytics for individual stocks.
         </p>
       </div>
 
-      <TopMovers />
+      <section aria-labelledby="movers-heading">
+        <h2 id="movers-heading" className="sr-only">Market Movers</h2>
+        <TopMovers />
+      </section>
 
-      <div className="mt-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">All Stocks</h2>
+      <section aria-labelledby="stocks-heading" className="mt-8">
+        <h2 id="stocks-heading" className="text-xl font-semibold text-gray-900 mb-4">
+          All Stocks
+        </h2>
         <StockList />
-      </div>
+      </section>
     </div>
   )
 }

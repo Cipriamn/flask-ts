@@ -1,16 +1,16 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Area,
+  AreaChart,
 } from 'recharts'
 import { fetchStockHistory } from '../api/stocks'
-import LoadingSpinner from './LoadingSpinner'
+import { ChartSkeleton } from './Skeleton'
 
 interface StockChartProps {
   symbol: string
@@ -29,37 +29,60 @@ const PERIODS = [
 function StockChart({ symbol }: StockChartProps) {
   const [selectedPeriod, setSelectedPeriod] = useState(PERIODS[2]) // Default to 1M
 
-  const { data: history, isLoading } = useQuery({
+  const { data: history, isLoading, isFetching } = useQuery({
     queryKey: ['stockHistory', symbol, selectedPeriod.value, selectedPeriod.interval],
     queryFn: () => fetchStockHistory(symbol, selectedPeriod.value, selectedPeriod.interval),
   })
 
+  const chartData = useMemo(() => {
+    return history?.map((item) => ({
+      date: item.date,
+      price: item.close,
+    })) || []
+  }, [history])
+
+  const { minPrice, maxPrice, isPositive } = useMemo(() => {
+    if (!chartData || chartData.length === 0) {
+      return { minPrice: 0, maxPrice: 100, isPositive: true }
+    }
+    const prices = chartData.map((d) => d.price)
+    const firstPrice = chartData[0]?.price || 0
+    const lastPrice = chartData[chartData.length - 1]?.price || 0
+    const change = lastPrice - firstPrice
+    return {
+      minPrice: Math.min(...prices) * 0.99,
+      maxPrice: Math.max(...prices) * 1.01,
+      isPositive: change >= 0,
+    }
+  }, [chartData])
+
   if (isLoading) {
-    return <LoadingSpinner message="Loading chart..." />
+    return <ChartSkeleton />
   }
 
-  const chartData = history?.map((item) => ({
-    date: item.date,
-    price: item.close,
-  }))
-
-  const minPrice = chartData ? Math.min(...chartData.map((d) => d.price)) * 0.99 : 0
-  const maxPrice = chartData ? Math.max(...chartData.map((d) => d.price)) * 1.01 : 100
+  const strokeColor = isPositive ? '#16a34a' : '#dc2626'
+  const fillColor = isPositive ? 'url(#greenGradient)' : 'url(#redGradient)'
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-gray-900">Price History</h3>
-        <div className="flex gap-1">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+        <div className="flex items-center gap-3">
+          <h3 className="font-semibold text-gray-900">Price History</h3>
+          {isFetching && !isLoading && (
+            <span className="text-xs text-primary-600 animate-pulse">Updating...</span>
+          )}
+        </div>
+        <div className="flex flex-wrap gap-1">
           {PERIODS.map((period) => (
             <button
               key={period.value}
               onClick={() => setSelectedPeriod(period)}
-              className={`px-3 py-1 text-sm rounded ${
+              className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 ${
                 selectedPeriod.value === period.value
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-primary-600 text-white shadow-sm'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:text-gray-900'
               }`}
+              aria-pressed={selectedPeriod.value === period.value}
             >
               {period.label}
             </button>
@@ -67,13 +90,25 @@ function StockChart({ symbol }: StockChartProps) {
         </div>
       </div>
 
-      <div className="h-64">
+      <div className={`h-72 ${isFetching && !isLoading ? 'opacity-60' : ''} transition-opacity`}>
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+          <AreaChart data={chartData}>
+            <defs>
+              <linearGradient id="greenGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#16a34a" stopOpacity={0.3} />
+                <stop offset="100%" stopColor="#16a34a" stopOpacity={0.05} />
+              </linearGradient>
+              <linearGradient id="redGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#dc2626" stopOpacity={0.3} />
+                <stop offset="100%" stopColor="#dc2626" stopOpacity={0.05} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
             <XAxis
               dataKey="date"
-              tick={{ fontSize: 12, fill: '#6b7280' }}
+              tick={{ fontSize: 11, fill: '#6b7280' }}
+              tickLine={false}
+              axisLine={{ stroke: '#e5e7eb' }}
               tickFormatter={(value) => {
                 const date = new Date(value)
                 return selectedPeriod.value === '1d' || selectedPeriod.value === '5d'
@@ -83,28 +118,40 @@ function StockChart({ symbol }: StockChartProps) {
             />
             <YAxis
               domain={[minPrice, maxPrice]}
-              tick={{ fontSize: 12, fill: '#6b7280' }}
-              tickFormatter={(value) => `$${value.toFixed(2)}`}
+              tick={{ fontSize: 11, fill: '#6b7280' }}
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={(value) => `$${value.toFixed(0)}`}
+              width={60}
             />
             <Tooltip
               contentStyle={{
                 backgroundColor: '#fff',
                 border: '1px solid #e5e7eb',
                 borderRadius: '8px',
+                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
               }}
               formatter={(value: number) => [`$${value.toFixed(2)}`, 'Price']}
               labelFormatter={(label) => new Date(label).toLocaleString()}
+              cursor={{ stroke: '#9ca3af', strokeDasharray: '5 5' }}
             />
-            <Line
+            <Area
               type="monotone"
               dataKey="price"
-              stroke="#2563eb"
+              stroke={strokeColor}
               strokeWidth={2}
-              dot={false}
+              fill={fillColor}
+              animationDuration={500}
             />
-          </LineChart>
+          </AreaChart>
         </ResponsiveContainer>
       </div>
+
+      {chartData.length === 0 && !isLoading && (
+        <div className="text-center py-8 text-gray-500">
+          No chart data available for the selected period
+        </div>
+      )}
     </div>
   )
 }
