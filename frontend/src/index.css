@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-gray-50 text-gray-900 antialiased;
+}
+
+.stock-up {
+  @apply text-green-600;
+}
+
+.stock-down {
+  @apply text-red-600;
+}
+
+.stock-neutral {
+  @apply text-gray-600;
+}
