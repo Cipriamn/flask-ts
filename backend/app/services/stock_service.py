@@ -39,7 +39,7 @@ class StockService:
         batch_size = 50
         all_stocks = []
 
-        for i in range(0, min(len(symbols), 100), batch_size):  # Limit to first 100 for demo
+        for i in range(0, len(symbols), batch_size):  # Fetch all S&P 500 stocks (500+)
             batch = symbols[i:i + batch_size]
             tickers_str = ' '.join(batch)
 

@@ -8,12 +8,12 @@ import { TopMoversSkeleton } from './Skeleton'
 function TopMovers() {
   const { data: gainers, isLoading: loadingGainers } = useQuery({
     queryKey: ['topGainers'],
-    queryFn: () => fetchTopGainers(5),
+    queryFn: () => fetchTopGainers(15),
   })
 
   const { data: losers, isLoading: loadingLosers } = useQuery({
     queryKey: ['topLosers'],
-    queryFn: () => fetchTopLosers(5),
+    queryFn: () => fetchTopLosers(15),
   })
 
   if (loadingGainers || loadingLosers) {
