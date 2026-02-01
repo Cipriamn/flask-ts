@@ -39,7 +39,7 @@ class StockService:
         batch_size = 50
         all_stocks = []
 
-        for i in range(0, min(len(symbols), 100), batch_size):  # Limit to first 100 for demo
+        for i in range(0, min(len(symbols), 250), batch_size):  # Increased from 100 to 250 stocks
             batch = symbols[i:i + batch_size]
             tickers_str = ' '.join(batch)
 
