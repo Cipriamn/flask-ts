@@ -1,9 +1,10 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
-import { TrendingUp, BarChart3, Github } from 'lucide-react'
+import { TrendingUp, BarChart3, Github, Bitcoin } from 'lucide-react'
 
 function Layout() {
   const location = useLocation()
   const isHome = location.pathname === '/'
+  const isCrypto = location.pathname.startsWith('/crypto')
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -17,8 +18,8 @@ function Layout() {
               <div className="p-1.5 bg-primary-100 rounded-lg">
                 <TrendingUp className="w-5 h-5" />
               </div>
-              <span className="hidden sm:inline">S&P 500 Watcher</span>
-              <span className="sm:hidden">S&P 500</span>
+              <span className="hidden sm:inline">Market Watcher</span>
+              <span className="sm:hidden">Markets</span>
             </Link>
             <nav className="flex items-center gap-2">
               <Link
@@ -30,7 +31,18 @@ function Layout() {
                 }`}
               >
                 <BarChart3 className="w-4 h-4" />
-                <span className="hidden sm:inline">Dashboard</span>
+                <span className="hidden sm:inline">Stocks</span>
+              </Link>
+              <Link
+                to="/crypto"
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-1 ${
+                  isCrypto
+                    ? 'bg-orange-50 text-orange-700'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                <Bitcoin className="w-4 h-4" />
+                <span className="hidden sm:inline">Crypto</span>
               </Link>
               <a
                 href="https://github.com/Cipriamn/flask-ts"
@@ -56,9 +68,9 @@ function Layout() {
       <footer className="bg-white border-t border-gray-200 py-4 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-sm text-gray-500">
-            <p>S&P 500 Stock Market Watcher</p>
+            <p>Stock & Crypto Market Watcher</p>
             <p className="text-xs">
-              Data provided by Yahoo Finance. Not for trading decisions.
+              Data provided by Yahoo Finance & CoinGecko. Not for trading decisions.
             </p>
           </div>
         </div>

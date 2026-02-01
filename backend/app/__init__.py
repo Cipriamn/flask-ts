@@ -16,8 +16,9 @@ def create_app(config_name=None):
     CORS(app, origins=['http://localhost:3000', 'http://localhost:5173'])
 
     # Register blueprints
-    from app.routes import stocks_bp, health_bp
+    from app.routes import stocks_bp, health_bp, crypto_bp
     app.register_blueprint(stocks_bp, url_prefix='/api/stocks')
     app.register_blueprint(health_bp, url_prefix='/api')
+    app.register_blueprint(crypto_bp, url_prefix='/api/crypto')
 
     return app
